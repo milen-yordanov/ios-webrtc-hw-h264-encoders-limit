@@ -206,10 +206,7 @@ function turnVideoOff() {
   videoSender.replaceTrack(null);
   pc1.removeTrack(videoSender);
 
-  setTimeout(() => {
-    onNegotiationNeeded();
-  }, 1000);
-  
+  onNegotiationNeeded();
 
   videoOffButton.disabled = true;
   videoSender = null;
@@ -241,7 +238,8 @@ function turnVideoOn() {
       videoSender = pc1.addTrack(videoTracks[0], localStream);
       onNegotiationNeeded();
       videoOffButton.disabled = false;
-    });
+    })
+    .catch(e => alert(`getUserMedia() error: ${e.name}`));
 }
 
 function hangup() {
