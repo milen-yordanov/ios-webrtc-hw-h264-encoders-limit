@@ -30,8 +30,7 @@
 <body>
 
 <div id="container">
-    <h1><a href="//webrtc.github.io/samples/" title="WebRTC samples homepage">WebRTC samples</a>
-        <span>Peer connection</span></h1>
+    <h1>WebRTC samples. Video ON / OFF.</h1>
 
     <video id="localVideo" playsinline autoplay muted></video>
     <video id="remoteVideo" playsinline autoplay></video>
@@ -39,22 +38,40 @@
     <div>
         <button id="startButton">Start</button>
         <button id="callButton">Call</button>
-        <button id="upgradeButton">Turn on video</button>
+        <button id="videoOnButton">Turn ON video</button>
+        <button id="videoOffButton">Turn OFF video</button>
         <button id="hangupButton">Hang Up</button>
     </div>
 
-    <p>View the console to see logging. The <code>MediaStream</code> object <code>localStream</code>, and the <code>RTCPeerConnection</code>
-        objects <code>pc1</code> and <code>pc2</code> are in global scope, so you can inspect them in the console as
-        well.</p>
+    <p>On mobile Safari do these steps:
+        <ol>
+            <li>Click Start</li>
+            <li>Click Call</li>
+            <li>Turn ON video, Turn OFF video</li>
+            <li>Turn ON video, Turn OFF video</li>
+            <li>Turn ON video, Turn OFF video</li>
+            <li>Turn ON video, Turn OFF video</li>
+            <li>Turn ON video, Turn OFF video</li>
+        </ol>
+    </p>
 
-    <p>For more information about RTCPeerConnection, see <a href="http://www.html5rocks.com/en/tutorials/webrtc/basics/"
-                                                            title="HTML5 Rocks article about WebRTC by Sam Dutton">Getting
-        Started With WebRTC</a>.</p>
-
-
-    <a href="https://github.com/webrtc/samples/tree/gh-pages/src/content/peerconnection/upgrade"
-       title="View source for this page on GitHub" id="viewSource">View source on GitHub</a>
-
+    <p>
+        The app eventually will exhaust all HW H.264 encoders and will fail. Tested on iPad Mini 2, iOS 12.4
+        The device log says:
+<pre>
+mediaserverd	H.264-legacy: Init hw video encoder: dimension = 640 x 360, usage = 1
+mediaserverd	AVE: Bottom extended pixels = 8
+mediaserverd	Assert - (false) - f: /BuildRoot/Library/Caches/com.apple.xbs/Sources/AppleVXE380/AppleVXE380-445.6/Library/AppleVXE380FIGwrapper.cpp l: 3166
+kernel	H264SecurityCheck WARNING: m_NumberOfClients reached MAX 4
+kernel	VXE380 WARNING: m_ClientsSecurityCheck->AddClient failed
+mediaserverd	VXE FIG ERROR: kVTVideoEncoderNotAvailableNowErr.
+mediaserverd	Assert - (pDriverInstance) - f: /BuildRoot/Library/Caches/com.apple.xbs/Sources/AppleVXE380/AppleVXE380-445.6/Library/AppleVXE380UserLandLibrary.cpp l: 648
+mediaserverd	AppleVXE380VA ERROR: AppleVXE380VA_DriverDelete, pDriverInstance NULL.
+mediaserverd	Assert - (err == noErr) - f: /BuildRoot/Library/Caches/com.apple.xbs/Sources/AppleVXE380/AppleVXE380-445.6/Library/AppleVXE380FIGwrapper.cpp l: 3302
+mediaserverd	VXE FIG ERROR: AppleVXE380VA_DriverDelete failed.
+mediaserverd	H.264: failed to init video encoder, err = -108
+</pre>
+    </p>
 </div>
 
 <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>

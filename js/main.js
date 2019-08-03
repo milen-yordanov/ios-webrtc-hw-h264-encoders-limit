@@ -10,14 +10,17 @@
 
 const startButton = document.getElementById('startButton');
 const callButton = document.getElementById('callButton');
-const upgradeButton = document.getElementById('upgradeButton');
+const videoOnButton = document.getElementById('videoOnButton');
+const videoOffButton = document.getElementById('videoOffButton');
 const hangupButton = document.getElementById('hangupButton');
 callButton.disabled = true;
 hangupButton.disabled = true;
-upgradeButton.disabled = true;
+videoOnButton.disabled = true;
+videoOffButton.disabled = true;
 startButton.onclick = start;
 callButton.onclick = call;
-upgradeButton.onclick = upgrade;
+videoOnButton.onclick = turnVideoOn;
+videoOffButton.onclick = turnVideoOff;
 hangupButton.onclick = hangup;
 
 let startTime;
@@ -47,6 +50,8 @@ remoteVideo.onresize = () => {
 let localStream;
 let pc1;
 let pc2;
+let videoSender = null;
+
 const offerOptions = {
   offerToReceiveAudio: 1,
   offerToReceiveVideo: 0
@@ -81,7 +86,7 @@ function start() {
 
 function call() {
   callButton.disabled = true;
-  upgradeButton.disabled = false;
+  videoOnButton.disabled = false;
   hangupButton.disabled = false;
   console.log('Starting call');
   startTime = window.performance.now();
@@ -102,7 +107,11 @@ function call() {
 
   localStream.getTracks().forEach(track => pc1.addTrack(track, localStream));
   console.log('Added local stream to pc1');
+  onNegotiationNeeded();
+}
 
+function onNegotiationNeeded()
+{
   console.log('pc1 createOffer start');
   pc1.createOffer(offerOptions).then(onCreateOfferSuccess, onCreateSessionDescriptionError);
 }
@@ -137,16 +146,32 @@ function onSetSessionDescriptionError(error) {
 }
 
 function gotRemoteStream(e) {
-  console.log('gotRemoteStream', e.track, e.streams[0]);
+  console.log('gotRemoteStream', e.track);
 
+  if(!remoteVideo.srcObject)
+  {
+    remoteVideo.srcObject = new MediaStream();
+  }
+
+  let stream = remoteVideo.srcObject;
+  stream.addTrack(e.track);
   // reset srcObject to work around minor bugs in Chrome and Edge.
   remoteVideo.srcObject = null;
-  remoteVideo.srcObject = e.streams[0];
+  remoteVideo.srcObject = stream;
+
+
+  e.track.addEventListener('mute', () => {
+    console.log('remote track muted', e.track);
+    let stream = remoteVideo.srcObject;
+    stream.removeTrack(e.track);
+    remoteVideo.srcObject = null;
+    remoteVideo.srcObject = stream;
+  });
 }
 
 function onCreateAnswerSuccess(desc) {
   console.log(`Answer from pc2:
-${desc.sdp}`);
+  ${desc.sdp}`);
   console.log('pc2 setLocalDescription start');
   pc2.setLocalDescription(desc).then(() => onSetLocalSuccess(pc2), onSetSessionDescriptionError);
   console.log('pc1 setRemoteDescription start');
@@ -175,8 +200,34 @@ function onIceStateChange(pc, event) {
   }
 }
 
-function upgrade() {
-  upgradeButton.disabled = true;
+function turnVideoOff() {
+  let videoTrack = videoSender.track;
+
+  videoSender.replaceTrack(null);
+  pc1.removeTrack(videoSender);
+
+  setTimeout(() => {
+    onNegotiationNeeded();
+  }, 1000);
+  
+
+  videoOffButton.disabled = true;
+  videoSender = null;
+  videoOnButton.disabled = false;
+
+  localVideo.srcObject = null;
+
+  console.assert(localStream.getVideoTracks().length === 1);
+  localStream.removeTrack(videoTrack);
+  console.assert(localStream.getVideoTracks().length === 0);
+
+  localVideo.srcObject = localStream;
+  videoTrack.stop();
+  videoSender = null;
+}
+
+function turnVideoOn() {
+  videoOnButton.disabled = true;
   navigator.mediaDevices
     .getUserMedia({video: true})
     .then(stream => {
@@ -187,14 +238,10 @@ function upgrade() {
       localStream.addTrack(videoTracks[0]);
       localVideo.srcObject = null;
       localVideo.srcObject = localStream;
-      pc1.addTrack(videoTracks[0], localStream);
-      return pc1.createOffer();
-    })
-    .then(offer => pc1.setLocalDescription(offer))
-    .then(() => pc2.setRemoteDescription(pc1.localDescription))
-    .then(() => pc2.createAnswer())
-    .then(answer => pc2.setLocalDescription(answer))
-    .then(() => pc1.setRemoteDescription(pc2.localDescription));
+      videoSender = pc1.addTrack(videoTracks[0], localStream);
+      onNegotiationNeeded();
+      videoOffButton.disabled = false;
+    });
 }
 
 function hangup() {
