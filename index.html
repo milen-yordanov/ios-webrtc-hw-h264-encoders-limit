@@ -56,10 +56,11 @@
     </p>
 
     <p>
-        The app eventually will exhaust all HW H.264 encoders and will fail. Tested on iPad Mini 2, iOS 12.4
+        The app eventually will exhaust all HW H.264 encoders and will fail. The remote video will be black when the local video is playing.
+        Tested on iPad Mini 2, iOS 12.4
         The device log says:
 <pre>
-mediaserverd	H.264-legacy: Init hw video encoder: dimension = 640 x 360, usage = 1
+mediaserverd	H.264-legacy: Init hw video encoder: dimension = 640 x 480, usage = 1
 mediaserverd	AVE: Bottom extended pixels = 8
 mediaserverd	Assert - (false) - f: /BuildRoot/Library/Caches/com.apple.xbs/Sources/AppleVXE380/AppleVXE380-445.6/Library/AppleVXE380FIGwrapper.cpp l: 3166
 kernel	H264SecurityCheck WARNING: m_NumberOfClients reached MAX 4
